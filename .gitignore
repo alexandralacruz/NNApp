@@ -1,0 +1,16 @@
+.venv/
+.venv
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+.idea/
+.env
+.env.*
+*.log
+output/
+output-*/
+uploads/
+uploads-*/
+datasets/
+datasets-*/
