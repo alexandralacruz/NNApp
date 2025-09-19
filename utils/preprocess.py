@@ -6,6 +6,7 @@ import io
 import numpy as np
 import pandas as pd
 from typing import Tuple
+from sklearn.preprocessing import StandardScaler
 
 # Opcionales: solo si planeas usar imágenes/audio
 from PIL import Image
@@ -15,22 +16,24 @@ import librosa
 # -----------------------------
 # Tabular
 # -----------------------------
-def preprocess_tabular(df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray | None]:
+def preprocess_tabular(df: pd.DataFrame) -> [ np.ndarray | None]: # type: ignore
     """
     Limpia y normaliza un DataFrame.
     Si el CSV de entrenamiento incluye una columna 'target', la separa.
     Retorna (X, y) o (X, None) si no hay target.
     """
+
     df = df.copy()
 
-    y = None
-    if "target" in df.columns:
-        y = df.pop("target").values
-
-    # Normalización simple 0-1
-    X = (df - df.min()) / (df.max() - df.min() + 1e-8)
-    return X.values.astype(np.float32), y
-
+    df = df.drop(columns="target", errors="ignore")
+    
+    # Normalización by Scaler
+    scaler = StandardScaler()
+    print(f"scalar values : {df.astype(np.float32)}")
+    X = scaler.fit_transform(df.astype(np.float32))
+    
+    
+    return X
 
 # -----------------------------
 # Imágenes

@@ -13,6 +13,12 @@ mode = st.radio("Modo de operación", ["Entrenar", "Predecir"])
 if mode == "Entrenar" and data_type == "tabular":
     st.subheader("Entrenamiento")
     csv_file = st.file_uploader("Sube CSV de entrenamiento", type="csv")
+    if csv_file is not None:
+        # Read the uploaded CSV into a DataFrame
+        df = pd.read_csv(csv_file)
+
+        st.subheader("First 5 Rows")
+        st.dataframe(df.head())   # shows only the first 5 rows
     epochs = st.slider("Épocas", 1, 100, 20)
     if csv_file and st.button("Entrenar"):
         files = {"csv_file": (csv_file.name, csv_file.getvalue(), "text/csv")}
@@ -26,17 +32,36 @@ if mode == "Entrenar" and data_type == "tabular":
 
 elif mode == "Predecir":
     if data_type == "tabular":
-        st.write("Sube un CSV limpio:")
-        file = st.file_uploader("CSV", type="csv")
-        if file and st.button("Predecir"):
-            df = pd.read_csv(file)
-            payload = {
-                "data_type": "tabular",
-                "framework": framework,
-                "tabular_data": df.to_json(orient="records")
+        st.subheader("Predicción")
+        csv_file = st.file_uploader("Sube CSV a predecir", type="csv")
+        if csv_file is not None:
+            # Read the uploaded CSV into a DataFrame
+            df = pd.read_csv(csv_file)
+
+            st.subheader("First 5 Rows")
+            st.dataframe(df.head())   # shows only the first 5 rows
+        
+        if csv_file and st.button("Predecir"):
+            # OJO: para FastAPI mandamos multipart/form-data con 'files'
+            files = {
+                "csv_file": (csv_file.name, csv_file.getvalue(), "text/csv")
             }
-            r = requests.post(f"{FASTAPI_URL}/predict/", data=payload)
-            st.write(r.json())
+            data = {
+                "data_type": "tabular",
+                "framework": framework,  # el que hayas seleccionado en tu UI
+            }
+
+            # Ahora sí: enviar archivo + form-data a FastAPI
+            res = requests.post(f"{FASTAPI_URL}/predict/", data=data, files=files)
+
+            st.write("Status:", res.status_code)
+            st.write("Raw response:", res.text)
+
+            if res.ok:
+                st.success("Predicción:")
+                st.json(res.json())
+            else:
+                st.error("Error en la predicción")
     else:
         file = st.file_uploader("Sube archivo", type=["png","jpg","wav","mp3"])
         if file and st.button("Predecir"):
