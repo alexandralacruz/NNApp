@@ -18,4 +18,5 @@
 > streamlit run ui/app.py
 
 # with poetry
+Pretty soon
 
